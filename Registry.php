@@ -1,5 +1,4 @@
 <?php
-
 namespace CoreUI;
 use CoreUI\Utils;
 
@@ -30,7 +29,7 @@ class Registry {
 
 
     /**
-     * @param \PDO|\mysqli $db
+     * @param \PDO|\mysqli|object|resource $db
      */
     public static function setDbConnection($db) {
         self::$db = new Utils\Db($db);
