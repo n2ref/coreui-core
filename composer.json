@@ -3,8 +3,8 @@
   "type": "framework",
   "description": "PHP framework for web applications",
   "keywords": ["framework"],
-  "homepage": "https://github.com/shabuninil/combine",
-  "license": "GNU2",
+  "homepage": "https://github.com/shabuninil/coreui-core",
+  "license": "GNU3",
   "authors": [
     {
       "name": "Igor Shabunin",
