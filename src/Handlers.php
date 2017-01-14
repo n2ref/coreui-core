@@ -103,7 +103,12 @@ class Handlers {
                 }
 
                 switch ($this->process) {
-                    case 'save' :             $this->saveData($data); break;
+                    case 'save' :
+                        $form_handler = new Form\Handler();
+                        return $form_handler->getSessData($name);
+
+                        $this->saveData($data);
+                        break;
                     case 'delete' :           $this->deleteData($data); break;
                     case 'search' :           $this->setSearch($data); break;
                     case 'clear_search' :     $this->setClearSearch(); break;
