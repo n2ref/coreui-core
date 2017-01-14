@@ -22,7 +22,10 @@
   },
   "autoload": {
     "psr-4": {
-      "CoreUI\\": "src/"
+      "CoreUI\\": "src/",
+      "CoreUI\\Utils\\": "src/Utils/",
+      "CoreUI\\Utils\\SqlParser\\": "src/Utils/SqlParser/",
+      "CoreUI\\Utils\\Session\\": "src/Utils/Session/"
     }
   }
 }
