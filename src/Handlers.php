@@ -53,11 +53,12 @@ class Handlers {
      */
     public function isHandler() {
         return ! empty($this->process) &&
-               in_array($this->process, array(
-                   'save', 'delete', 'order',
-                   'status', 'search', 'clear_search',
-                   'records_per_page', 'upload'
-               ));
+            in_array($this->process, array(
+                'save', 'delete', 'order',
+                'status', 'search', 'clear_search',
+                'records_per_page', 'upload', 'export',
+                'sequence', 'sort'
+            ));
     }
 
 
@@ -105,20 +106,59 @@ class Handlers {
                 switch ($this->process) {
                     case 'save' :
                         $form_handler = new Form\Handler();
-                        return $form_handler->getSessData($name);
-
-                        $this->saveData($data);
+                        $form_handler->saveData($data);
                         break;
-                    case 'delete' :           $this->deleteData($data); break;
-                    case 'search' :           $this->setSearch($data); break;
-                    case 'clear_search' :     $this->setClearSearch(); break;
-                    case 'records_per_page' : $this->setRecordPerPage($data); break;
-                    case 'status' :           $this->setStatus($data); break;
-                    case 'order' :            $this->setOrder($data); break;
-                    case 'upload' :           $this->uploadFile(); break;
+
+                    case 'upload' :
+                        $form_handler = new Form\Handler();
+                        $form_handler->uploadFile();
+                        break;
+
+                    case 'delete' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->deleteData($data);
+                        break;
+
+                    case 'search' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setSearch($data);
+                        break;
+
+                    case 'clear_search' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setClearSearch($data);
+                        break;
+
+                    case 'records_per_page' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setRecordPerPage($data);
+                        break;
+
+                    case 'status' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setStatus($data);
+                        break;
+
+                    case 'order' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setOrder($data);
+                        break;
+
                     case 'export' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->exportData($data);
+                        break;
+
                     case 'sequence' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setSequence($data);
+                        break;
+
                     case 'sort' :
+                        $table_handler = new Table\Handler();
+                        $table_handler->setSort($data);
+                        break;
+
                     default : throw new Exception('Unknown process name'); break;
                 }
 
