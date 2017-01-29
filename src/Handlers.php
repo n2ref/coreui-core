@@ -17,7 +17,8 @@ class Handlers {
 
     protected $resource = '';
     protected $process  = '';
-    protected $response = array();
+    protected $token    = '';
+    protected static $response = array();
 
     /**
      * @var Adapters\PDO|Adapters\Mysqli
@@ -28,6 +29,7 @@ class Handlers {
     public function __construct() {
         $this->resource = ! empty($_SERVER['HTTP_X_CMB_RESOURCE']) ? $_SERVER['HTTP_X_CMB_RESOURCE'] : '';
         $this->process  = ! empty($_SERVER['HTTP_X_CMB_PROCESS']) ? $_SERVER['HTTP_X_CMB_PROCESS'] : '';
+        $this->token    = ! empty($_SERVER['HTTP_X_CMB_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CMB_CSRF_TOKEN'] : '';
         $this->db       = Registry::getDbConnection()->getAdapter();
     }
 
@@ -68,16 +70,23 @@ class Handlers {
      */
     public function getResponse() {
 
+        if ( ! isset(self::$response['status'])) {
+            self::$response['status'] = 'success';
+        }
+
         $session = new SessionNamespace($this->resource);
-        if (isset($session->form) && isset($session->form->back_url)) {
-            $this->response['back_url'] = $session->form->back_url;
+        if (isset($session->form) &&
+            isset($session->form->{$this->token}) &&
+            self::$response['status'] == 'success'
+        ) {
+            if (isset($session->form->{$this->token}->back_url)) {
+                self::$response['back_url'] = $session->form->{$this->token}->back_url;
+            }
+
+            unset($session->form->{$this->token});
         }
 
-        if ( ! isset($this->response['status'])) {
-            $this->response['status']  = 'success';
-        }
-
-        return json_encode($this->response);
+        return json_encode(self::$response);
     }
 
 
@@ -106,7 +115,12 @@ class Handlers {
                 switch ($this->process) {
                     case 'save' :
                         $form_handler = new Form\Handler();
-                        $form_handler->saveData($data);
+                        $data = $form_handler->filterControls($data);
+                        if ($form_handler->validateControls($data)) {
+                            $form_handler->saveData($data);
+                        } else {
+                            return false;
+                        }
                         break;
 
                     case 'upload' :
@@ -162,7 +176,7 @@ class Handlers {
                     default : throw new Exception('Unknown process name'); break;
                 }
 
-                $this->response['status']  = 'success';
+                self::$response['status'] = 'success';
                 return true;
 
             } catch (Exception $e) {
@@ -176,13 +190,13 @@ class Handlers {
 
 
     /**
-     * Установка текста ошибки
-     * @param string $message
+     * Установка ошибки
+     * @param string|array $error
      */
-    protected function addError($message) {
+    public function addError($error) {
 
-        $this->response['message'] = $message;
-        $this->response['status']  = 'error';
+        self::$response['errors'][] = $error;
+        self::$response['status']   = 'error';
     }
 
 
@@ -191,14 +205,16 @@ class Handlers {
      */
     protected function isValidRequest($component) {
 
-        if ( ! empty($this->resource)) {
+        if ( ! empty($this->resource) && ! empty($this->token)) {
             $session = new SessionNamespace($this->resource);
 
-            if (isset($session->$component) &&
-                isset($session->$component->__csrf_token) &&
-                isset($_SERVER['HTTP_X_CMB_CSRF_TOKEN'])
-            ) {
-                return $session->$component->__csrf_token === $_SERVER['HTTP_X_CMB_CSRF_TOKEN'];
+            if ($component == 'table') {
+                if ( ! empty($session->table) && ! empty($session->table->__csrf_token)) {
+                    return $this->token === $session->table->__csrf_token;
+                }
+
+            } else if (isset($session->{$component})) {
+                return ! empty($session->{$component}->{$this->token});
             }
         }
 
