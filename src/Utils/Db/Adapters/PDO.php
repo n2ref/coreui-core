@@ -541,8 +541,13 @@ class PDO implements Adapter {
         $query_data['value_fields'] = array();
         $query_data['params']       = array();
 
-        foreach ($data as $name=>$value) {
-            if (is_string($value) || is_numeric($value)) {
+        foreach ($data as $name => $value) {
+            // FIXME исключение для zend
+            if ($value instanceof \Zend_Db_Expr) {
+                $query_data['fields'][]       = $this->quoteIdentifier($name);
+                $query_data['value_fields'][] = $value->__toString();
+
+            } else {
                 $query_data['fields'][]       = $this->quoteIdentifier($name);
                 $query_data['value_fields'][] = '?';
                 $query_data['params'][]       = $value;
@@ -578,7 +583,12 @@ class PDO implements Adapter {
         $query_data['params'] = array();
 
         foreach ($data as $name => $value) {
-            if (is_string($value) || is_numeric($value)) {
+            // FIXME исключение для zend
+            if ($value instanceof \Zend_Db_Expr) {
+                $query_data['fields'][]       = $this->quoteIdentifier($name);
+                $query_data['value_fields'][] = $value->__toString();
+
+            } else {
                 $quoted_name = $this->quoteIdentifier($name);
                 $query_data['fields'][] = "{$quoted_name} = ?";
                 $query_data['params'][] = $value;
