@@ -201,6 +201,15 @@ class Handlers {
 
 
     /**
+     * Проверка наличия ошибок
+     * @return bool
+     */
+    public function isError() {
+        return isset(self::$response['status']) && self::$response['status'] == 'error';
+    }
+
+
+    /**
      * @return bool
      */
     protected function isValidRequest($component) {
